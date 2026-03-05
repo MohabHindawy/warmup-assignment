@@ -10,9 +10,9 @@ function getShiftDuration(startTime, endTime) {
     const start = startTime.toLowerCase().split(' ')
     const startTimeClean = start[0].split(':')
 
-    let startH = parseFloat(startTimeClean[0])
-    let startM = parseFloat(startTimeClean[1])
-    let startS = parseFloat(startTimeClean[2])
+    let startH = parseInt(startTimeClean[0])
+    let startM = parseInt(startTimeClean[1])
+    let startS = parseInt(startTimeClean[2])
 
     if(start[1] == 'pm' && startH != 12) {
         startH += 12
@@ -24,9 +24,9 @@ function getShiftDuration(startTime, endTime) {
     const end = endTime.toLowerCase().split(' ')
     const endTimeClean = end[0].split(':')
 
-    let endH = parseFloat(endTimeClean[0])
-    let endM = parseFloat(endTimeClean[1])
-    let endS = parseFloat(endTimeClean[2])
+    let endH = parseInt(endTimeClean[0])
+    let endM = parseInt(endTimeClean[1])
+    let endS = parseInt(endTimeClean[2])
 
     if(end[1] == 'pm' && endH != 12) {
         endH += 12
@@ -67,9 +67,9 @@ function getIdleTime(startTime, endTime) {
     const start = startTime.toLowerCase().split(' ')
     const startTimeClean = start[0].split(':')
 
-    let startH = parseFloat(startTimeClean[0])
-    let startM = parseFloat(startTimeClean[1])
-    let startS = parseFloat(startTimeClean[2])
+    let startH = parseInt(startTimeClean[0])
+    let startM = parseInt(startTimeClean[1])
+    let startS = parseInt(startTimeClean[2])
 
     if(start[1] == 'pm' && startH != 12) {
         startH += 12
@@ -81,9 +81,9 @@ function getIdleTime(startTime, endTime) {
     const end = endTime.toLowerCase().split(' ')
     const endTimeClean = end[0].split(':')
 
-    let endH = parseFloat(endTimeClean[0])
-    let endM = parseFloat(endTimeClean[1])
-    let endS = parseFloat(endTimeClean[2])
+    let endH = parseInt(endTimeClean[0])
+    let endM = parseInt(endTimeClean[1])
+    let endS = parseInt(endTimeClean[2])
 
     if(end[1] == 'pm' && endH != 12) {
         endH += 12
@@ -105,21 +105,17 @@ function getIdleTime(startTime, endTime) {
             boundM = endM
             boundS = endS
         }
-
         let s = boundS - startS
         if(s < 0) {
             s += 60
             boundM--
         }
-
         let m = boundM - startM
         if(m < 0) {
             m += 60
             boundH--
         }
-
         let h = boundH - startH
-
         seconds += s
         minutes += m
         hours += h
@@ -138,26 +134,31 @@ function getIdleTime(startTime, endTime) {
             s += 60
             endM--
         }
-
         let m = endM - boundM
         if(m < 0) {
             m += 60
             endH--
         }
-
         let h = endH - boundH
-
         seconds += s
         minutes += m
         hours += h
     }
+    if (seconds >= 60) {
+        minutes += Math.floor(seconds / 60);
+        seconds %= 60;
+    }
+    if (minutes >= 60) {
+        hours += Math.floor(minutes / 60);
+        minutes %= 60;
+    }
 
     if(seconds < 0) {
-        seconds -= 60
+        seconds += 60
         endM--
     }
     if(minutes < 0) {
-        minutes -= 60
+        minutes += 60
         endH--
     }
     const secs = String(seconds).padStart(2, '0')
@@ -175,15 +176,15 @@ function getIdleTime(startTime, endTime) {
 function getActiveTime(shiftDuration, idleTime) {
     const duration = shiftDuration.split(':')
 
-    let durationH = parseFloat(duration[0])
-    let durationM = parseFloat(duration[1])
-    let durationS = parseFloat(duration[2])
+    let durationH = parseInt(duration[0])
+    let durationM = parseInt(duration[1])
+    let durationS = parseInt(duration[2])
 
     const idle = idleTime.split(':')
 
-    let idleH = parseFloat(idle[0])
-    let idleM = parseFloat(idle[1])
-    let idleS = parseFloat(idle[2])
+    let idleH = parseInt(idle[0])
+    let idleM = parseInt(idle[1])
+    let idleS = parseInt(idle[2])
 
     let seconds = durationS - idleS
     if(seconds < 0) {
@@ -414,7 +415,8 @@ function getRequiredHoursPerMonth(textFile, rateFile, bonusCount, driverID, mont
         const date = cols[2].trim().split('-')
         
         if(driverID == id && month == monthVal) {
-            const d = new Date(dateString)
+            const [year, m, day] = dateString.split('-').map(Number)
+            const d = new Date(year, m - 1, day)
             const shiftDayName = d.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
             
             if(shiftDayName == dayOff) continue
@@ -428,6 +430,7 @@ function getRequiredHoursPerMonth(textFile, rateFile, bonusCount, driverID, mont
         }
     }
     totalSeconds -= (bonusCount * 2 * 3600)
+    if(totalSeconds < 0) totalSeconds = 0;
 
     const hours = Math.floor(totalSeconds / 3600)
     const minutes = Math.floor((totalSeconds % 3600) / 60)
