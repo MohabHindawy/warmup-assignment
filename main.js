@@ -233,7 +233,7 @@ function metQuota(date, activeTime) {
 // Returns: object with 10 properties or empty object {}
 // ============================================================
 function addShiftRecord(textFile, shiftObj) {
-    const content = fs.readFileSync(textFile, 'utf8').split('\n')
+    const content = fs.readFileSync(textFile, 'utf8').trim().split('\n')
     let lastSeenIndex = -1
     for(let i = 0; i < content.length; i++) {
         const line = content[i].trim()
